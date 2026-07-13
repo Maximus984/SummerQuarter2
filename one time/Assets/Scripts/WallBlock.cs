@@ -1,4 +1,5 @@
 using UnityEngine;
+using BigRookGames.Weapons;
 
 public class WallBlock : MonoBehaviour
 {
@@ -18,5 +19,15 @@ public class WallBlock : MonoBehaviour
             // end the game 
             GameManager.Instance.GameOver();
         }
+
+        ProjectileController projectile = other.gameObject.GetComponent<ProjectileController>();
+
+        if (projectile != null)
+        {
+            // Despawn this block
+            Destroy(gameObject);
+        }
+
+
     }
 }
