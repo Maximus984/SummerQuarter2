@@ -16,11 +16,12 @@ public class WallBlock : MonoBehaviour
         // check if the hit object is the player or not 
         if (player != null)
         {
+            Destroy(other.gameObject); // Destroy the player object
             // end the game 
             GameManager.Instance.GameOver();
         }
 
-        ProjectileController projectile = other.gameObject.GetComponent<ProjectileController>();
+       ProjectileController projectile = other.gameObject.GetComponent<ProjectileController>();
 
         if (projectile != null)
         {

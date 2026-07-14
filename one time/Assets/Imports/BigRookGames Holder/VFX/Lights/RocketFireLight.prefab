@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4600397608914020}
   - component: {fileID: 108753114143921534}
-  - component: {fileID: -891970833310745576}
+  - component: {fileID: -3415580453241696873}
   m_Layer: 0
   m_Name: RocketFireLight
   m_TagString: Untagged
@@ -98,7 +98,7 @@ Light:
   m_LightUnit: 1
   m_LuxAtDistance: 1
   m_EnableSpotReflector: 1
---- !u!114 &-891970833310745576
+--- !u!114 &-3415580453241696873
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

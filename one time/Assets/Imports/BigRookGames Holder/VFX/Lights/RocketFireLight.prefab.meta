@@ -1,7 +1,8 @@
 fileFormatVersion: 2
-guid: 5269dd52fdc50ea429c6b6a65cc1161e
-PrefabImporter:
+guid: a91676991de102c4c8d1928a86ad4e5e
+NativeFormatImporter:
   externalObjects: {}
+  mainObjectFileID: 100100000
   userData: 
   assetBundleName: 
   assetBundleVariant: 
@@ -11,5 +12,5 @@ AssetOrigin:
   packageName: Stylized Rocket Launcher Complete Kit with Visual Effects and Sound
     - Hand Painted Bazooka - HQ Toon Weapon Set
   packageVersion: 1.0
-  assetPath: Assets/prefabs/Rocket Projectile.prefab
+  assetPath: Assets/Imports/BigRookGames Holder/VFX/Lights/RocketFireLight.prefab
   uploadId: 389310
