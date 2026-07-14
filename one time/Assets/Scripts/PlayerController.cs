@@ -8,6 +8,7 @@ public class PlayerController : MonoBehaviour
     // ACTIONS
     private InputAction moveAction;
     private InputAction jumpAction;
+    private float score = 0f;
 
     private Vector2 moveInput;
     [SerializeField] private LayerMask groundLayerMask;
@@ -28,6 +29,7 @@ public class PlayerController : MonoBehaviour
         jumpAction = InputSystem.actions.FindAction("Jump");
 
         rb = GetComponent<Rigidbody>();
+        score = 0f;
     }
 
     private void OnEnable()
@@ -44,6 +46,10 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
+        // Udate the score based on time
+        score = transform.position.z;
+        UIManager.Instance.UpdateScore((int)score);
+
         // read & store movement input from the action sheet    
         moveInput = moveAction.ReadValue<UnityEngine.Vector2>();
 
@@ -51,6 +57,13 @@ public class PlayerController : MonoBehaviour
         {
             //Tell the player to jump
             HandleJump();
+        }
+
+        // Check if player has fallen off the map
+        if (transform.position.y < -10f)
+        {
+            Destroy(gameObject); // Destroy the player object
+            GameManager.Instance.GameOver();
         }
     }
 
