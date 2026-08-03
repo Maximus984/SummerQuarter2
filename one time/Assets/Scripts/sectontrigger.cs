@@ -14,13 +14,11 @@ public class sectontrigger : MonoBehaviour
         // check if the hit object is the olayer or not 
         if (player != null)
         {
+            Debug.Log("Spawning from: " + roadSection.name);
             Instantiate(roadSection, new UnityEngine.Vector3(0, 0, transform.position.z + spawnOffset), Quaternion.identity);
-
+            Debug.Log(roadSection.name);
             // Destroy this trigger to avoid multiple triggers 
             Destroy(this);
         }
-
-        // spawn the naxt road section
-
     }
 }

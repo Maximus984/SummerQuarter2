@@ -8,8 +8,8 @@ public class WallBlock : MonoBehaviour
     
     private void OnCollisionEnter(Collision other)
     {
-
         Debug.Log("WallBlock collided with: " + other.gameObject.name);
+
         // Try to get the player controller component off the object we colidded with
         PlayerController player = other.gameObject.GetComponent<PlayerController>();
 
@@ -19,16 +19,21 @@ public class WallBlock : MonoBehaviour
             Destroy(other.gameObject); // Destroy the player object
             // end the game 
             GameManager.Instance.GameOver();
+            Debug.Log("PLayer hit the wall block, game over!");
         }
-
+        
        ProjectileController projectile = other.gameObject.GetComponent<ProjectileController>();
 
         if (projectile != null)
         {
-            // Despawn this block
-            Destroy(gameObject);
+            Debug.Log("BOOOOM");
+            // Disable this block
+            SetBlockState(false);
         }
+    }
 
-
+    public void SetBlockState(bool isActive)
+    {
+        gameObject.SetActive(isActive);
     }
 }

@@ -8,6 +8,7 @@ public class UIManager : MonoBehaviour
 
     [SerializeField] private TextMeshProUGUI scoreText;
     [SerializeField] private GameObject gameOverUI;
+    [SerializeField] private TextMeshProUGUI highScoreText;
 
     // Awake() Called when this gameobject is enabled in the scene
     private void Awake()
@@ -32,6 +33,12 @@ public class UIManager : MonoBehaviour
     {
         // Update the score text object with the given score
         scoreText.text = $"Score: {score}";
+    }
+
+    public void UpdateHighScore(float highScore)
+    {
+        // Update the high score text object with the given high score
+        highScoreText.text = $"High Score: {highScore}";
     }
 
     public void ToggleGameOverUI(bool show)

@@ -12,9 +12,9 @@ GameObject:
   - component: {fileID: 3977714587943691477}
   - component: {fileID: 7210024669318879276}
   - component: {fileID: 8351291316992973461}
-  - component: {fileID: 941442859445926055}
   - component: {fileID: 3351057441140963936}
   - component: {fileID: 3667644900035161117}
+  - component: {fileID: 3785177739457338760}
   m_Layer: 0
   m_Name: Wall Block
   m_TagString: Untagged
@@ -116,18 +116,6 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 2166573482093008780, guid: 6f8a4d3050f6b2d4e9ed37778ffeba9a, type: 3}
---- !u!114 &941442859445926055
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8949762073799961840}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 330e38ddd4beb4426a1c6821e988cf08, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::WallBlock
 --- !u!54 &3351057441140963936
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -176,3 +164,15 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.04999996, y: 0.05000002, z: 0.050000437}
   m_Center: {x: -0.0000004768372, y: 0.02500001, z: -9.313227e-10}
+--- !u!114 &3785177739457338760
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8949762073799961840}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 330e38ddd4beb4426a1c6821e988cf08, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WallBlock

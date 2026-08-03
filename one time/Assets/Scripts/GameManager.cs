@@ -30,6 +30,7 @@ public class GameManager : MonoBehaviour
     {
         if (isGameOver) return; // Do nothing if the game is already over 
 
+        PlayerController.Instance.GameOver();
         // Set the game to be over
         isGameOver = true;
         // Trigger Game Over UI
