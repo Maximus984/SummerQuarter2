@@ -20,7 +20,12 @@ public class GameManager : MonoBehaviour
             if (Keyboard.current != null && Keyboard.current.rKey.wasPressedThisFrame && CoinSystem.Spend(reviveCost))
             {
                 Time.timeScale = 1f;
-                SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+                isGameOver = false;
+                PlayerController.Instance.ReviveInPlace();
+                UIManager.Instance.ToggleGameOverUI(false);
+                UIManager.Instance.HideHitNotice();
+                UIManager.Instance.HideRoundMessage();
+                AudioManager.Instance?.StartGameplayMusic();
             }
             return;
         }
@@ -48,12 +53,50 @@ public class GameManager : MonoBehaviour
         // Reset the game over flag
         isGameOver = false;
         Time.timeScale = 1f;
+        if (GetComponent<BossWorldController>() == null)
+        {
+            gameObject.AddComponent<BossWorldController>();
+        }
     } 
 
     public void BeginRun()
     {
+        if (PlayerPrefs.GetInt("BossMode", 0) == 1)
+        {
+            CurrentRound = 5;
+            StartCoroutine(StartUnescapableMode());
+            return;
+        }
+
         CurrentRound = 1;
         StartCoroutine(RunStartCountdown());
+    }
+
+    private IEnumerator StartUnescapableMode()
+    {
+        Time.timeScale = 0f;
+        BossWorldController.Instance?.EnterBossWorld();
+        UIManager.Instance.SetDangerTheme(true);
+
+        EnemyFollow[] enemies = FindObjectsByType<EnemyFollow>(FindObjectsSortMode.None);
+        for (int index = 0; index < enemies.Length; index++)
+        {
+            bool isBoss = index == 0;
+            enemies[index].gameObject.SetActive(isBoss);
+            if (isBoss)
+            {
+                enemies[index].transform.localScale = Vector3.one * 3f;
+                enemies[index].gameObject.name = "Unescapable Boss";
+                enemies[index].SetUnescapableMode(true);
+            }
+        }
+
+        bool accepted = false;
+        UIManager.Instance.ShowUnescapableControls(() => accepted = true);
+        yield return new WaitUntil(() => accepted);
+        UIManager.Instance.HideRoundMessage();
+        Time.timeScale = 1f;
+        AudioManager.Instance?.StartUnescapableMusic();
     }
 
     private IEnumerator RunStartCountdown()
@@ -119,6 +162,7 @@ public class GameManager : MonoBehaviour
     private IEnumerator StartBossRound()
     {
         Time.timeScale = 0f;
+        BossWorldController.Instance?.EnterBossWorld();
         UIManager.Instance.ShowRoundMessage("BOSS ROUND!\n\nDODGE THE BIG ENEMY\nSHOOT IT WITH ROCKETS\n\nPRESS ENTER TO START");
         yield return new WaitUntil(() => Keyboard.current != null && Keyboard.current.enterKey.wasPressedThisFrame);
 
@@ -171,7 +215,9 @@ public class GameManager : MonoBehaviour
         Time.timeScale = 1f;
         AudioManager.Instance?.StopSound("MainTheme");
         UIManager.Instance.ShowRunSummary(PlayerController.Instance.CurrentScore, PlayerController.Instance.CurrentDanger);
-        UIManager.Instance.ShowHitNotice(CoinSystem.Coins >= reviveCost ? "PRESS R: REVIVE (10 COINS)" : "NEED 10 COINS TO REVIVE");
+        string[] taunts = { "UH OH. I GOT YOU.", "TOO SLOW.", "RUN FASTER NEXT TIME.", "THERE IS NO ESCAPE." };
+        string reviveText = CoinSystem.Coins >= reviveCost ? "PRESS R: REVIVE (10 COINS)" : "NEED 10 COINS TO REVIVE";
+        UIManager.Instance.ShowHitNotice(taunts[UnityEngine.Random.Range(0, taunts.Length)] + "\n" + reviveText);
         // Trigger Game Over UI
         UIManager.Instance.ToggleGameOverUI(true);
     }

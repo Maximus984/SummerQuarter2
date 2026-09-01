@@ -1,6 +1,7 @@
                   using UnityEngine;
 using TMPro;
 using System;
+using UnityEngine.UI;
 
 public class UIManager : MonoBehaviour
 {
@@ -17,6 +18,8 @@ public class UIManager : MonoBehaviour
     private TextMeshProUGUI coinText;
     private TextMeshProUGUI xpText;
     private TextMeshProUGUI rankText;
+    private Image staminaFill;
+    private TextMeshProUGUI staminaLabel;
     private float hitNoticeEndTime;
 
     // Awake() Called when this gameobject is enabled in the scene
@@ -49,6 +52,7 @@ public class UIManager : MonoBehaviour
         CreateCoinDisplay();
         CreateXpDisplay();
         CreateRankDisplay();
+        CreateStaminaDisplay();
         shieldText.gameObject.SetActive(false);
         coinText.gameObject.SetActive(false);
         xpText.gameObject.SetActive(false);
@@ -113,6 +117,64 @@ public class UIManager : MonoBehaviour
     {
         if (xpText != null) xpText.text = $"XP: {xp}/100  LEVEL: {level}";
         if (rankText != null) rankText.text = $"RANK: {RankSystem.CurrentRank}";
+    }
+
+    public void UpdateStamina(float amount, bool sprinting)
+    {
+        if (staminaFill == null) return;
+        staminaFill.fillAmount = Mathf.Clamp01(amount);
+        staminaFill.color = sprinting ? new Color(1f, .55f, .1f) : Color.cyan;
+        staminaLabel.text = "SPRINT";
+    }
+
+    public void ShowUnescapableControls(Action onOkay)
+    {
+        Canvas canvas = FindFirstObjectByType<Canvas>();
+        GameObject panel = new GameObject("Unescapable Controls", typeof(RectTransform), typeof(Image));
+        panel.transform.SetParent(canvas.transform, false);
+        panel.GetComponent<Image>().color = new Color(.08f, .01f, .01f, .96f);
+        RectTransform panelRect = panel.GetComponent<RectTransform>();
+        panelRect.anchorMin = panelRect.anchorMax = new Vector2(.5f, .5f);
+        panelRect.pivot = new Vector2(.5f, .5f);
+        panelRect.sizeDelta = new Vector2(760f, 500f);
+
+        TextMeshProUGUI message = Instantiate(scoreText, panel.transform);
+        ConfigureHudText(message);
+        message.text = "UNESCAPABLE\n\nA FAST BOSS IS HUNTING YOU\n\nMOVE: A + D OR ARROW KEYS\nSPRINT: HOLD LEFT CLICK\nSHOOT: RIGHT CLICK\n\nORANGE TOKENS GIVE A SPEED BOOST";
+        message.fontSize = 29;
+        message.alignment = TextAlignmentOptions.Center;
+        message.color = Color.white;
+        message.rectTransform.anchorMin = new Vector2(0f, .2f);
+        message.rectTransform.anchorMax = new Vector2(1f, 1f);
+        message.rectTransform.offsetMin = new Vector2(30f, 15f);
+        message.rectTransform.offsetMax = new Vector2(-30f, -25f);
+
+        GameObject okay = new GameObject("Unescapable OK Button", typeof(RectTransform), typeof(Image), typeof(Button));
+        okay.transform.SetParent(panel.transform, false);
+        Image okayImage = okay.GetComponent<Image>();
+        okayImage.color = new Color(.8f, .13f, .08f, 1f);
+        RectTransform okayRect = okay.GetComponent<RectTransform>();
+        okayRect.anchorMin = okayRect.anchorMax = new Vector2(.5f, 0f);
+        okayRect.pivot = new Vector2(.5f, 0f);
+        okayRect.anchoredPosition = new Vector2(0f, 35f);
+        okayRect.sizeDelta = new Vector2(270f, 75f);
+
+        TextMeshProUGUI okayText = Instantiate(scoreText, okay.transform);
+        ConfigureHudText(okayText);
+        okayText.text = "OK - START RUN";
+        okayText.fontSize = 26;
+        okayText.alignment = TextAlignmentOptions.Center;
+        okayText.color = Color.white;
+        okayText.rectTransform.anchorMin = Vector2.zero;
+        okayText.rectTransform.anchorMax = Vector2.one;
+        okayText.rectTransform.offsetMin = Vector2.zero;
+        okayText.rectTransform.offsetMax = Vector2.zero;
+
+        okay.GetComponent<Button>().onClick.AddListener(() =>
+        {
+            Destroy(panel);
+            onOkay?.Invoke();
+        });
     }
 
     public void ShowRoundMessage(string message)
@@ -255,6 +317,44 @@ public class UIManager : MonoBehaviour
         rankText.rectTransform.anchoredPosition = new Vector2(-25f, -210f);
         rankText.rectTransform.sizeDelta = new Vector2(300f, 45f);
         rankText.text = $"RANK: {RankSystem.CurrentRank}";
+    }
+
+    private void CreateStaminaDisplay()
+    {
+        GameObject background = new GameObject("Stamina Bar", typeof(RectTransform), typeof(Image));
+        background.transform.SetParent(scoreText.transform.parent, false);
+        background.GetComponent<Image>().color = new Color(0f, 0f, 0f, .65f);
+        RectTransform backgroundRect = background.GetComponent<RectTransform>();
+        backgroundRect.anchorMin = backgroundRect.anchorMax = new Vector2(.5f, 1f);
+        backgroundRect.pivot = new Vector2(.5f, 1f);
+        backgroundRect.anchoredPosition = new Vector2(0f, -25f);
+        backgroundRect.sizeDelta = new Vector2(220f, 18f);
+
+        GameObject fill = new GameObject("Stamina Fill", typeof(RectTransform), typeof(Image));
+        fill.transform.SetParent(background.transform, false);
+        staminaFill = fill.GetComponent<Image>();
+        staminaFill.color = Color.cyan;
+        staminaFill.type = Image.Type.Filled;
+        staminaFill.fillMethod = Image.FillMethod.Horizontal;
+        staminaFill.fillOrigin = 0;
+        RectTransform fillRect = fill.GetComponent<RectTransform>();
+        fillRect.anchorMin = Vector2.zero;
+        fillRect.anchorMax = Vector2.one;
+        fillRect.offsetMin = new Vector2(3f, 3f);
+        fillRect.offsetMax = new Vector2(-3f, -3f);
+
+        staminaLabel = Instantiate(scoreText, background.transform.parent);
+        staminaLabel.name = "Sprint Label";
+        staminaLabel.text = "SPRINT";
+        staminaLabel.fontSize = 18;
+        staminaLabel.alignment = TextAlignmentOptions.Center;
+        staminaLabel.color = Color.white;
+        ConfigureHudText(staminaLabel);
+        RectTransform labelRect = staminaLabel.rectTransform;
+        labelRect.anchorMin = labelRect.anchorMax = new Vector2(.5f, 1f);
+        labelRect.pivot = new Vector2(.5f, 1f);
+        labelRect.anchoredPosition = new Vector2(0f, -47f);
+        labelRect.sizeDelta = new Vector2(220f, 22f);
     }
 
     private void ConfigureHudText(TextMeshProUGUI text)

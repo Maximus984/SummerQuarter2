@@ -9,17 +9,43 @@ public class MainMenu : MonoBehaviour
     private GameObject howToPlayPanel;
     private GameObject settingsButton;
     private GameObject settingsPanel;
+    private GameObject unescapableButton;
 
     private void Start()
     {
         CreateHowToPlayMenu();
         CreateSettingsMenu();
+        CreateUnescapableButton();
     }
 
     public void StartGame()
     {
-        // Load the next scene in the build index (the game scene)
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);    
+        // Load the game scene by its exact name, so menu changes cannot open an empty scene.
+        PlayerPrefs.SetInt("BossMode", 0);
+        PlayerPrefs.Save();
+        SceneManager.LoadScene("SampleScene");
+    }
+
+    private void CreateUnescapableButton()
+    {
+        GameObject startButton = GameObject.Find("Start button");
+        if (startButton == null) return;
+
+        unescapableButton = Instantiate(startButton, startButton.transform.parent);
+        unescapableButton.name = "Unescapable Button";
+        unescapableButton.transform.SetSiblingIndex(1);
+        SetButtonText(unescapableButton, "UNESCAPABLE");
+
+        Button button = unescapableButton.GetComponent<Button>();
+        button.onClick = new Button.ButtonClickedEvent();
+        button.onClick.AddListener(StartUnescapable);
+    }
+
+    public void StartUnescapable()
+    {
+        PlayerPrefs.SetInt("BossMode", 1);
+        PlayerPrefs.Save();
+        SceneManager.LoadScene("SampleScene");
     }
 
     public void ExitGame()
@@ -143,7 +169,7 @@ public class MainMenu : MonoBehaviour
     {
         string selected = PlayerPrefs.GetInt("UseWasdControls", 0) == 1 ? "WASD" : "ARROW KEYS";
         SetButtonText(settingsPanel,
-            "SETTINGS\n\nMOVE KEYS: " + selected + "\nCLICK TO SWITCH\n\nLEFT CLICK: SHOOT\nRIGHT CLICK or SPACE: JUMP\nV: CAMERA VIEW\n\nSTARTS IN THIRD-PERSON");
+            "SETTINGS\n\nMOVE KEYS: " + selected + "\nCLICK TO SWITCH\n\nLEFT CLICK: SHOOT\nLEFT SHIFT: SPRINT\nV: CAMERA VIEW\n\nSTARTS IN THIRD-PERSON");
     }
 
     private GameObject CreatePage(string pageName, string message)

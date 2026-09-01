@@ -8,14 +8,11 @@ public class PlayerController : MonoBehaviour
 
     // ACTIONS
     private InputAction moveAction;
-    private InputAction jumpAction;
     private float score = 0f;
     private float bonusScore;
     private float highScore;
 
     private Vector2 moveInput;
-    [SerializeField] private LayerMask groundLayerMask;
-    [SerializeField] private float groundCheckDistance = 1f;
 
     // COMPONENTS
     [SerializeField] private Rigidbody rb;
@@ -23,7 +20,10 @@ public class PlayerController : MonoBehaviour
 
     [SerializeField] private float forwardSpeed = 8f;
     [SerializeField] private float strafeSpeed = 5f;
-    [SerializeField] private float jumpForce = 5f;
+    [SerializeField] private float sprintMultiplier = 1.55f;
+    [SerializeField] private float maxStamina = 100f;
+    [SerializeField] private float staminaDrainPerSecond = 32f;
+    [SerializeField] private float staminaRecoveryPerSecond = 20f;
 
     [Header("Speed Progression")]
     [SerializeField] private float speedIncreaseAt100 = 2f;
@@ -40,6 +40,9 @@ public class PlayerController : MonoBehaviour
     private CameraShake cameraShake;
     private float shieldEndTime;
     private int awardedXpScore;
+    private float stamina;
+    private float speedTokenEndTime;
+    private float sprintLockedUntil;
 
     public float CurrentScore => score;
     public int CurrentHealth => currentHealth;
@@ -59,11 +62,12 @@ public class PlayerController : MonoBehaviour
             Destroy(gameObject);
         }
 
-        // Get the move and jump actions from the input action sheet
+        // Get the movement action from the input action sheet.
         moveAction = inputActions.FindAction("Move");
-        jumpAction = inputActions.FindAction("Jump");
 
         rb = GetComponent<Rigidbody>();
+        // The runner always faces forward. Obstacles and enemies cannot spin it around.
+        rb.constraints |= RigidbodyConstraints.FreezeRotation;
         transform.position += Vector3.up * .5f;
         if (GetComponent<PlayerMechAnimation>() == null)
         {
@@ -75,8 +79,10 @@ public class PlayerController : MonoBehaviour
         }
         if (GetComponent<ShieldPickupSpawner>() == null) gameObject.AddComponent<ShieldPickupSpawner>();
         if (GetComponent<CoinPickupSpawner>() == null) gameObject.AddComponent<CoinPickupSpawner>();
+        if (PlayerPrefs.GetInt("BossMode", 0) == 1 && GetComponent<SpeedTokenSpawner>() == null) gameObject.AddComponent<SpeedTokenSpawner>();
         score = 0f;
         currentHealth = maxHealth;
+        stamina = maxStamina;
         highScore = PlayerPrefs.GetFloat("HighScore", 0f); // Load the high score from PlayerPrefs
     }
 
@@ -106,6 +112,7 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
+        if (GameManager.isGameOver) return;
         // Udate the score based on time
         score = transform.position.z + bonusScore;
         int wholeScore = Mathf.FloorToInt(score);
@@ -121,15 +128,9 @@ public class PlayerController : MonoBehaviour
         // read & store movement input from the action sheet    
         moveInput = ReadMoveInput();
 
-        if (jumpAction.WasPressedThisFrame() || Mouse.current.rightButton.wasPressedThisFrame)
-        {
-            HandleJump();
-        }
-
         // Check if player has fallen off the map
         if (transform.position.y < -10f)
         {
-            Destroy(gameObject); // Destroy the player object
             GameManager.Instance.GameOver();
         }
     }
@@ -137,6 +138,7 @@ public class PlayerController : MonoBehaviour
 
     private void FixedUpdate()
     {
+        if (GameManager.isGameOver) return;
         HandleMovement();
 
     }
@@ -145,6 +147,23 @@ public class PlayerController : MonoBehaviour
     {
         float speedMultiplier = Time.time < hurtEndTime ? hurtSpeedMultiplier : 1f;
         float currentForwardSpeed = forwardSpeed;
+        bool sprinting = Mouse.current != null && Mouse.current.leftButton.isPressed && stamina > .1f && Time.time >= sprintLockedUntil;
+        if (sprinting)
+        {
+            stamina = Mathf.Max(0f, stamina - staminaDrainPerSecond * Time.fixedDeltaTime);
+            currentForwardSpeed *= sprintMultiplier;
+            if (stamina <= 0f)
+            {
+                // Empty stamina needs a short recovery break, so sprint cannot be spammed.
+                sprintLockedUntil = Time.time + 1.5f;
+            }
+        }
+        else
+        {
+            stamina = Mathf.Min(maxStamina, stamina + staminaRecoveryPerSecond * Time.fixedDeltaTime);
+        }
+        if (Time.time < speedTokenEndTime) currentForwardSpeed *= 1.35f;
+        UIManager.Instance.UpdateStamina(stamina / maxStamina, sprinting);
 
         if (score >= 1000f)
         {
@@ -178,19 +197,10 @@ public class PlayerController : MonoBehaviour
     }
  
 
-    private void HandleJump()
-    {    
-        if (isGrounded()) rb.AddForce(Vector3.up * jumpForce,ForceMode.Impulse);
-    }
-
-    private bool isGrounded()
+    public void CollectSpeedToken()
     {
-        bool isGrounded = Physics.Raycast(transform.position,
-         Vector3.down, groundCheckDistance,
-         groundLayerMask);
-
-        Debug.Log($"Is Ground: {isGrounded}");
-        return isGrounded;
+        speedTokenEndTime = Time.time + 5f;
+        UIManager.Instance.ShowHitNotice("SPEED BOOST!  5 SECONDS");
     }
 
     public void GameOver()
@@ -203,6 +213,24 @@ public class PlayerController : MonoBehaviour
             UIManager.Instance.UpdateHighScore((int)highScore); // Update the high score UI
             PlayerPrefs.Save(); // Ensure the high score is saved immediately
         }
+    }
+
+    public void ReviveInPlace()
+    {
+        currentHealth = 1;
+        lastHitTime = Time.time;
+        hurtEndTime = Time.time + 1f;
+
+        // If the player fell, put them back above the road at their current progress.
+        if (transform.position.y < 0f)
+        {
+            transform.position = new Vector3(transform.position.x, 2f, transform.position.z);
+            rb.linearVelocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
+        }
+
+        UIManager.Instance.UpdateScore((int)score, currentHealth, maxHealth, CurrentDanger);
+        UIManager.Instance.ShowRoundMessage("REVIVED!\n1 LIFE LEFT");
     }
 
     public void TakeHit()

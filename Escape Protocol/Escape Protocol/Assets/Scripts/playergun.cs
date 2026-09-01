@@ -11,7 +11,6 @@ public class playergun : MonoBehaviour
     [SerializeField] private float fireRate = 1.5f; // How fast the gun fires projectiles
     private float fireRateTimer = 0f; // Timer to track when the gun can fire again
 
-    private InputAction shootAction;
     [SerializeField] private InputActionAsset inputActions;
 
     private void Shoot()
@@ -33,8 +32,7 @@ public class playergun : MonoBehaviour
 
     private void Awake()
     {
-        // Repeatedly trigger the shoot method
-        shootAction = InputSystem.actions.FindAction("Attack");
+        // Shooting uses the right mouse button in Unescapable.
     }
 
     private void Update()
@@ -42,7 +40,7 @@ public class playergun : MonoBehaviour
         // Decremenent the fire rate timer
         fireRateTimer -= Time.deltaTime;
 
-        if (shootAction.WasPressedThisFrame())
+        if (Mouse.current != null && Mouse.current.rightButton.wasPressedThisFrame)
         {
             // Check if we are ready to fire again 
             if (fireRateTimer <= 0f)

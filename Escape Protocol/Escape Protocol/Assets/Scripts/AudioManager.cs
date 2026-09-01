@@ -10,6 +10,7 @@ public class AudioManager : MonoBehaviour
     private Sound[] sounds;
     private bool gameplayMusicStarted;
     private bool musicWasPlaying;
+    private AudioSource unescapableMusicSource;
 
     private void Awake()
     {
@@ -57,6 +58,30 @@ public class AudioManager : MonoBehaviour
         musicWasPlaying = true;
     }
 
+    public void StartUnescapableMusic()
+    {
+        // This clip is kept in Assets/Resources so the boss mode can load it in a build too.
+        AudioClip clip = Resources.Load<AudioClip>("UnescapableBoss");
+        if (clip == null)
+        {
+            Debug.LogWarning("Unescapable boss music is not imported yet.");
+            return;
+        }
+
+        StopSound("MainTheme");
+        if (unescapableMusicSource == null)
+        {
+            unescapableMusicSource = gameObject.AddComponent<AudioSource>();
+            unescapableMusicSource.loop = true;
+            unescapableMusicSource.volume = .8f;
+            unescapableMusicSource.spatialBlend = 0f;
+        }
+        unescapableMusicSource.clip = clip;
+        unescapableMusicSource.Play();
+        gameplayMusicStarted = false;
+        musicWasPlaying = false;
+    }
+
     public void PlaySound(string name)
     {
         // Find the sound in the sounds array based on the name passed in 
@@ -85,8 +110,13 @@ public class AudioManager : MonoBehaviour
             Debug.LogWarning($"Could not find {name} sound!");
             return; // Stop the function
         }
-        // Play the sound
         sound.audioSource.Stop();
+
+        // The boss music is separate from MainTheme, but it must never survive a game over or menu change.
+        if (name == "MainTheme" && unescapableMusicSource != null)
+        {
+            unescapableMusicSource.Stop();
+        }
     }
 
     public bool IsSoundPlaying(string name)
