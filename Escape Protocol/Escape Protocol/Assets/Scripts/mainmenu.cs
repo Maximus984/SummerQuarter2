@@ -79,17 +79,48 @@ public class MainMenu : MonoBehaviour
         GameObject startButton = GameObject.Find("Start button");
         if (startButton == null) return;
 
+        // Create the Settings button on the main menu
         settingsButton = Instantiate(startButton, startButton.transform.parent);
         settingsButton.name = "Settings Button";
         settingsButton.transform.SetSiblingIndex(2);
         SetButtonText(settingsButton, "SETTINGS");
+
         Button settings = settingsButton.GetComponent<Button>();
         settings.onClick = new Button.ButtonClickedEvent();
         settings.onClick.AddListener(ShowSettings);
 
+        // Create the Settings panel
         settingsPanel = CreatePage("Settings Page", "SETTINGS");
+
+        // Clicking the main settings panel changes the movement keys
         settingsPanel.GetComponent<Button>().onClick.AddListener(ChangeMoveKeys);
+
+        // Create a separate close button inside the Settings panel
+        GameObject closeButton = Instantiate(startButton, settingsPanel.transform);
+        closeButton.name = "Close Settings Button";
+        SetButtonText(closeButton, "CLOSE");
+
+        RectTransform closeRect = closeButton.GetComponent<RectTransform>();
+
+        // Position the close button at the bottom center
+        closeRect.anchorMin = new Vector2(0.5f, 0f);
+        closeRect.anchorMax = new Vector2(0.5f, 0f);
+        closeRect.pivot = new Vector2(0.5f, 0f);
+        closeRect.anchoredPosition = new Vector2(0f, 20f);
+        closeRect.sizeDelta = new Vector2(220f, 60f);
+        closeRect.localScale = Vector3.one;
+
+        Button closeButtonComponent = closeButton.GetComponent<Button>();
+        closeButtonComponent.onClick = new Button.ButtonClickedEvent();
+        closeButtonComponent.onClick.AddListener(ExitSettingsMenu);
+
         settingsPanel.SetActive(false);
+    }
+
+    private void ExitSettingsMenu()
+    {
+        settingsPanel.SetActive(false);
+        settingsButton.SetActive(true);
     }
 
     private void ShowSettings()
@@ -106,6 +137,7 @@ public class MainMenu : MonoBehaviour
         PlayerPrefs.Save();
         UpdateSettingsText();
     }
+
 
     private void UpdateSettingsText()
     {
